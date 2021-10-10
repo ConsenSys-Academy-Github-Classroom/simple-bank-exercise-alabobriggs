@@ -93,29 +93,25 @@ contract SimpleBank {
     /// @dev This does not return any excess ether sent to it
     /// @param withdrawAmount amount you want to withdraw
     /// @return The balance remaining for the user
-    function withdraw(uint256 withdrawAmount, address payable accountAddress)
-        public
-        returns (uint256)
-    {
+    function withdraw(uint256 withdrawAmount) public returns (uint256) {
         // If the sender's balance is at least the amount they want to withdraw,
-        // Subtract the amount from the sender's balance, and try to send that amount of ether
+        // Subtract the amount from the sender's balance, and try to transfer that amount of ether
         // to the user attempting to withdraw.
         // return the user's balance.
         // 1. Use a require expression to guard/ensure sender has enough funds
         // 2. Transfer Eth to the sender and decrement the withdrawal amount from
         //    sender's balance
         // 3. Emit the appropriate event for this message
-
-        require(accountAddress == msg.sender, "Only owner can withdraw");
         require(
-            withdrawAmount < balances[accountAddress],
+            withdrawAmount <= balances[msg.sender],
             "Cannot withdraw more than available balance"
         );
-        accountAddress.transfer(withdrawAmount);
+        payable(msg.sender).transfer(withdrawAmount);
 
-        uint256 newBalance = balances[accountAddress] - withdrawAmount;
+        uint256 newBalance = balances[msg.sender] - withdrawAmount;
+        balances[msg.sender] = newBalance;
 
-        emit LogWithdrawal(accountAddress, withdrawAmount, newBalance);
+        emit LogWithdrawal(msg.sender, withdrawAmount, newBalance);
         return withdrawAmount;
     }
 }
