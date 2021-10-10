@@ -74,18 +74,19 @@ contract SimpleBank {
     /// @notice Deposit ether into bank
     /// @return The balance of the user after the deposit is made
     function deposit() public payable returns (uint256) {
+        require(msg.value > 0, "Amount cannot be zero");
         // 1. Add the appropriate keyword so that this function can receive ether
         // 2. Users should be enrolled before they can make deposits
-        // 3. Add the amount to the user's balance. Hint: the amount can be
-        //    accessed from of the global variable `msg`
-        // 4. Emit the appropriate event associated with this function
-        // 5. return the balance of sndr of this transaction
-
-        require(msg.value > 0, "Amount cannot be zero");
         require(enrolled[msg.sender], "Address must be enrolled");
 
+        // 3. Add the amount to the user's balance. Hint: the amount can be
+        //    accessed from of the global variable `msg`
         balances[msg.sender] = msg.value;
+
+        // 4. Emit the appropriate event associated with this function
         emit LogDepositMade(msg.sender, msg.value);
+
+        // 5. return the balance of sndr of this transaction
         return msg.value;
     }
 
@@ -99,18 +100,18 @@ contract SimpleBank {
         // to the user attempting to withdraw.
         // return the user's balance.
         // 1. Use a require expression to guard/ensure sender has enough funds
-        // 2. Transfer Eth to the sender and decrement the withdrawal amount from
-        //    sender's balance
-        // 3. Emit the appropriate event for this message
         require(
-            withdrawAmount <= balances[msg.sender],
+            balances[msg.sender] >= withdrawAmount,
             "Cannot withdraw more than available balance"
         );
-        payable(msg.sender).transfer(withdrawAmount);
-
         uint256 newBalance = balances[msg.sender] - withdrawAmount;
+
+        // 2. Transfer Eth to the sender and decrement the withdrawal amount from
+        // transfer
+        msg.sender.transfer(withdrawAmount);
         balances[msg.sender] = newBalance;
 
+        // 3. Emit the appropriate event for this message
         emit LogWithdrawal(msg.sender, withdrawAmount, newBalance);
         return withdrawAmount;
     }
